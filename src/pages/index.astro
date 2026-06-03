@@ -41,42 +41,238 @@ const dynamicFs = JSON.stringify({ dirs, rootFiles });
 
 <BaseLayout title="Kevin Jin">
   <script type="application/json" id="fs-data" set:html={dynamicFs} />
-  <div id="terminal" tabindex="0">
-    <div id="output"></div>
-    <div id="input-line">
-      <span id="prompt"></span>
-      <input id="input" type="text" spellcheck="false" autocomplete="off" autocapitalize="off" />
+
+  <div class="desktop">
+    <div class="kde-window" id="kde-window">
+      <div class="kde-titlebar" id="kde-titlebar">
+        <span class="kde-icon">▣</span>
+        <span class="kde-title" id="window-title">kevin@kevinjin.dev: ~</span>
+        <div class="kde-controls">
+          <button class="kde-btn kde-min" id="btn-min" title="Minimize">─</button>
+          <button class="kde-btn kde-max" id="btn-max" title="Maximize">□</button>
+          <button class="kde-btn kde-close" id="btn-close" title="Close">✕</button>
+        </div>
+      </div>
+      <div id="terminal" tabindex="0">
+        <div id="output"></div>
+        <div id="input-area">
+          <div id="prompt-line1"></div>
+          <div id="input-line">
+            <span id="prompt-line2"></span>
+            <input id="input" type="text" spellcheck="false" autocomplete="off" autocapitalize="off" />
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </BaseLayout>
 
 <style is:global>
-  #terminal {
+  @font-face {
+    font-family: 'MesloLGS NF';
+    src: url('/fonts/MesloLGS-NF-Regular.ttf') format('truetype');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+  }
+  @font-face {
+    font-family: 'MesloLGS NF';
+    src: url('/fonts/MesloLGS-NF-Bold.ttf') format('truetype');
+    font-weight: 700;
+    font-style: normal;
+    font-display: swap;
+  }
+  @font-face {
+    font-family: 'MesloLGS NF';
+    src: url('/fonts/MesloLGS-NF-Italic.ttf') format('truetype');
+    font-weight: 400;
+    font-style: italic;
+    font-display: swap;
+  }
+  @font-face {
+    font-family: 'MesloLGS NF';
+    src: url('/fonts/MesloLGS-NF-BoldItalic.ttf') format('truetype');
+    font-weight: 700;
+    font-style: italic;
+    font-display: swap;
+  }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+  }
+
+  .desktop {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    box-sizing: border-box;
+    background-color: #0a0e13;
+    background-image: url('/firewatch.png');
+    background-size: cover;
+    background-position: center;
+  }
+
+  .desktop::before {
+    content: '';
     position: fixed;
     inset: 0;
-    background: #1e1e2e;
-    color: #cdd6f4;
+    background: rgba(0, 0, 0, 0.62);
+    backdrop-filter: blur(3px);
+    -webkit-backdrop-filter: blur(3px);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ── KDE window ── */
+  .kde-window {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    width: min(96vw, 1040px);
+    height: min(88vh, 760px);
+    border: 1px solid #2F343F;
+    box-shadow:
+      0 2px 4px rgba(0,0,0,0.4),
+      0 8px 24px rgba(0,0,0,0.55),
+      0 24px 64px rgba(0,0,0,0.35);
+    overflow: hidden;
+    
+  }
+
+
+  .kde-window.maximized {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    border: none;
+  }
+
+  /* ── Title bar ── */
+  .kde-titlebar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 10px;
+    height: 32px;
+    flex-shrink: 0;
+    background: #141A21;
+    border-bottom: 1px solid #1e2530;
+    user-select: none;
+    cursor: default;
+  }
+
+  .kde-icon {
+    font-size: 13px;
+    color: #5D88CA;
+    flex-shrink: 0;
+    line-height: 1;
+  }
+
+  .kde-title {
+    flex: 1;
+    font-family: 'MesloLGS NF', 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: #9298A5;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .kde-controls {
+    display: flex;
+    gap: 2px;
+    flex-shrink: 0;
+  }
+
+  .kde-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 20px;
+    background: none;
+    border: none;
+    border-radius: 3px;
+    color: #6c7280;
+    font-size: 13px;
     font-family: 'JetBrains Mono', monospace;
+    cursor: pointer;
+    line-height: 1;
+    padding: 0;
+    transition: background 0.12s, color 0.12s;
+  }
+
+  .kde-btn:hover {
+    background: #4667A0;
+    color: #D3DAE3;
+  }
+
+  .kde-close:hover {
+    background: #DA4453;
+    color: #D3DAE3;
+  }
+
+  /* ── Terminal body ── */
+  #terminal {
+    flex: 1;
+    min-height: 0;
+    background: #002818;
+    color: #dddddd;
+    font-family: 'MesloLGS NF', 'JetBrains Mono', monospace;
     font-size: 14px;
     line-height: 1.5;
-    padding: 16px;
+    padding: 14px 16px;
     overflow-y: auto;
     cursor: text;
   }
+
 
   #output div {
     white-space: pre-wrap;
     word-break: break-word;
   }
 
+  .frozen-prompt-line1 {
+    line-height: 1.4;
+    margin-top: 4px;
+  }
+
+  /* ── p10k-style prompt ── */
+  #prompt-line1 {
+    line-height: 1.4;
+    margin-top: 4px;
+    white-space: pre-wrap;
+  }
+
+  .seg {
+    display: inline;
+    padding: 0 6px;
+  }
+  .seg-os   { background: #dddddd; color: #080808; }
+  .seg-dir  { background: #0d73bb; color: #e4e4e4; }
+  .seg-arrow-os-dir  { background: #0d73bb; color: #dddddd; padding: 0; }
+  .seg-arrow-dir-end { background: #002818; color: #0d73bb; padding: 0; }
+
+  /* echo prompt shown in output history */
+  .echo-prompt { color: #5fd700; }
+
   #input-line {
     display: flex;
     align-items: center;
+    margin-top: 2px;
   }
 
-  #prompt {
-    white-space: pre;
+  #prompt-line2 {
+    color: #5fd700;
     flex-shrink: 0;
+    white-space: pre;
   }
 
   #input {
@@ -84,24 +280,34 @@ const dynamicFs = JSON.stringify({ dirs, rootFiles });
     background: none;
     border: none;
     outline: none;
-    color: #cdd6f4;
-    font-family: 'JetBrains Mono', monospace;
+    color: #dddddd;
+    font-family: 'MesloLGS NF', 'JetBrains Mono', monospace;
     font-size: 14px;
     line-height: 1.5;
     padding: 0;
     margin: 0;
-    caret-color: #cdd6f4;
+    caret-color: #dddddd;
     caret-shape: block;
   }
 
-  .prompt-user { color: #a6e3a1; }
-  .prompt-sep { color: #cdd6f4; }
-  .prompt-path { color: #89b4fa; }
-  .prompt-dollar { color: #cdd6f4; }
-  .dir-entry { color: #89b4fa; }
-  .accent { color: #b4befe; }
-  .label { color: #b4befe; }
-  .link { color: #89b4fa; text-decoration: underline; cursor: pointer; }
+  .dir-entry { color: #0d73bb; }
+  .accent    { color: #0dcdcd; }
+  .label     { color: #0dcdcd; }
+  .link      { color: #0d73bb; text-decoration: underline; cursor: pointer; }
+
+  /* ── Mobile: nearly full-screen ── */
+  @media (max-width: 600px) {
+    .desktop {
+      padding: 0;
+      align-items: stretch;
+    }
+    .kde-window {
+      width: 100%;
+      height: 100dvh;
+      border-radius: 0;
+      border: none;
+    }
+  }
 </style>
 
 <script>
@@ -116,25 +322,71 @@ const dynamicFs = JSON.stringify({ dirs, rootFiles });
   const history: string[] = [];
   let historyIndex = -1;
 
-  const outputEl = document.getElementById("output")!;
-  const inputEl = document.getElementById("input") as HTMLInputElement;
-  const promptEl = document.getElementById("prompt")!;
-  const terminalEl = document.getElementById("terminal")!;
+  const outputEl      = document.getElementById("output")!;
+  const inputEl       = document.getElementById("input") as HTMLInputElement;
+  const promptLine1El = document.getElementById("prompt-line1")!;
+  const promptLine2El = document.getElementById("prompt-line2")!;
+  const terminalEl    = document.getElementById("terminal")!;
+  const windowEl    = document.getElementById("kde-window")!;
+  const titleEl     = document.getElementById("window-title")!;
+  const btnMin      = document.getElementById("btn-min")!;
+  const btnMax      = document.getElementById("btn-max")!;
+  const btnClose    = document.getElementById("btn-close")!;
 
-  function renderPrompt(): string {
-    const path = cwd;
-    return `<span class="prompt-user">kevin@kevinjin.dev</span><span class="prompt-sep">:</span><span class="prompt-path">${path}</span><span class="prompt-dollar"> $ </span>`;
+  // ── Window controls ──────────────────────────────────────────
+
+  btnMax.addEventListener("click", () => {
+    windowEl.classList.toggle("maximized");
+    btnMax.textContent = windowEl.classList.contains("maximized") ? "❐" : "□";
+    inputEl.focus();
+  });
+
+  btnClose.addEventListener("click", () => {
+    window.location.href = "/about/";
+  });
+
+  // Double-click title bar to maximize
+  document.getElementById("kde-titlebar")!.addEventListener("dblclick", () => {
+    btnMax.click();
+  });
+
+  // ── Prompt & title ───────────────────────────────────────────
+  function updateWindowTitle() {
+    titleEl.textContent = `kevin@kevinjin.dev: ${cwd}`;
+  }
+
+  function renderPromptLine1(): string {
+    const dirLabel = cwd === "~" ? " ~" : escapeHtml(cwd);
+    return (
+      `<span class="seg seg-os">  </span>` +
+      `<span class="seg-arrow-os-dir"></span>` +
+      `<span class="seg seg-dir"> ${dirLabel} </span>` +
+      `<span class="seg-arrow-dir-end"></span>`
+    );
+  }
+
+  // Used only for echoing submitted commands in output
+  function renderEchoPrompt(): string {
+    return `<span class="echo-prompt">❯</span> `;
+  }
+
+  function freezePrompt(_interrupted: boolean) {
+    const div = document.createElement("div");
+    div.className = "frozen-prompt-line1";
+    div.innerHTML = renderPromptLine1();
+    outputEl.appendChild(div);
   }
 
   function updatePrompt() {
-    promptEl.innerHTML = renderPrompt();
+    promptLine1El.innerHTML = renderPromptLine1();
+    promptLine2El.textContent = "❯ ";
+    updateWindowTitle();
   }
 
+  // ── Filesystem helpers ────────────────────────────────────────
   function resolvePath(path: string): string[] {
     let parts: string[];
-    if (path === "~" || path === "") {
-      return [];
-    }
+    if (path === "~" || path === "") return [];
     if (path.startsWith("~/")) {
       parts = path.slice(2).split("/").filter(Boolean);
     } else if (path.startsWith("/")) {
@@ -143,14 +395,10 @@ const dynamicFs = JSON.stringify({ dirs, rootFiles });
       const cwdParts = cwd === "~" ? [] : cwd.slice(2).split("/").filter(Boolean);
       parts = [...cwdParts, ...path.split("/").filter(Boolean)];
     }
-
     const resolved: string[] = [];
     for (const p of parts) {
-      if (p === "..") {
-        resolved.pop();
-      } else if (p !== ".") {
-        resolved.push(p);
-      }
+      if (p === "..") resolved.pop();
+      else if (p !== ".") resolved.push(p);
     }
     return resolved;
   }
@@ -178,6 +426,7 @@ const dynamicFs = JSON.stringify({ dirs, rootFiles });
     return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
   }
 
+  // ── neofetch ─────────────────────────────────────────────────
   function neofetchOutput(): string {
     const art = [
       " _  __          _             _ _       ",
@@ -188,37 +437,26 @@ const dynamicFs = JSON.stringify({ dirs, rootFiles });
     ];
 
     const info = [
-      ["kevin@kevinjin.dev", ""],
+      ["visitor@kevinjin.dev", ""],
       ["------------------", ""],
       ["Major", "Computer Engineering"],
-      ["School", "University of Michigan"],
-      ["Email", "kevinjin0420@gmail.com"],
-      ["OS", "Kubuntu 22.04 LTS x86_64"],
-      ["Host", "ThinkPad P1 Gen 7"],
-      ["Kernel", "Linux 6.8.0-94-generic"],
-      ["Shell", "zsh 5.8.1"],
-      ["DE", "KDE Plasma 6.2.0"],
-      ["CPU", "Intel Core Ultra 7 165H @ 5.00 GHz"],
-      ["GPU", "NVIDIA RTX 4060 Max-Q"],
+      ["University", "University of Michigan"],
+      ["Email", "kevinjin0420<at>gmail.com"],
     ];
 
     const lines: string[] = [];
-    const maxArt = Math.max(art.length, info.length);
     const artWidth = 44;
 
-    for (let i = 0; i < maxArt; i++) {
-      const artLine = i < art.length ? art[i] : " ".repeat(artWidth);
-      const padded = artLine.padEnd(artWidth);
+    for (let i = 0; i < Math.max(art.length, info.length); i++) {
+      const artLine = (i < art.length ? art[i] : "").padEnd(artWidth);
       let infoStr = "";
       if (i < info.length) {
         const [label, value] = info[i];
-        if (value === "") {
-          infoStr = `<span class="accent">${escapeHtml(label)}</span>`;
-        } else {
-          infoStr = `<span class="label">${escapeHtml(label)}</span>: ${escapeHtml(value)}`;
-        }
+        infoStr = value === ""
+          ? `<span class="accent">${escapeHtml(label)}</span>`
+          : `<span class="label">${escapeHtml(label)}</span>: ${escapeHtml(value)}`;
       }
-      lines.push(`<span class="accent">${escapeHtml(padded)}</span>${infoStr}`);
+      lines.push(`<span class="accent">${escapeHtml(artLine)}</span>${infoStr}`);
     }
 
     lines.push("");
@@ -226,6 +464,7 @@ const dynamicFs = JSON.stringify({ dirs, rootFiles });
     return lines.join("\n");
   }
 
+  // ── Command processor ─────────────────────────────────────────
   function processCommand(input: string) {
     const trimmed = input.trim();
     if (!trimmed) return;
@@ -244,9 +483,6 @@ const dynamicFs = JSON.stringify({ dirs, rootFiles });
           "  cd &lt;dir&gt;       Change directory",
           "  cat &lt;file&gt;     Print file contents",
           "  open &lt;target&gt;  Navigate to a URL or page",
-          "  pwd            Print working directory",
-          "  clear          Clear terminal output",
-          "  whoami         Print current user",
           "  neofetch       Display system info",
         ].join("\n"));
         break;
@@ -325,11 +561,8 @@ const dynamicFs = JSON.stringify({ dirs, rootFiles });
             const urlMatch = node.match(/open ((?:\/|https?:\/\/)\S+)/);
             if (urlMatch) {
               const url = urlMatch[1];
-              if (url.startsWith("http")) {
-                window.open(url, "_blank");
-              } else {
-                window.location.href = url;
-              }
+              if (url.startsWith("http")) window.open(url, "_blank");
+              else window.location.href = url;
             } else {
               appendOutput(`open: ${escapeHtml(target)}: no link found in file`);
             }
@@ -337,22 +570,6 @@ const dynamicFs = JSON.stringify({ dirs, rootFiles });
             appendOutput(`open: ${escapeHtml(target)}: unknown target`);
           }
         }
-        break;
-      }
-
-      case "pwd": {
-        const display = cwd === "~" ? "/home/kevin" : "/home/kevin/" + cwd.slice(2);
-        appendOutput(escapeHtml(display));
-        break;
-      }
-
-      case "clear": {
-        outputEl.innerHTML = "";
-        break;
-      }
-
-      case "whoami": {
-        appendOutput("kevin");
         break;
       }
 
@@ -369,30 +586,26 @@ const dynamicFs = JSON.stringify({ dirs, rootFiles });
     }
   }
 
+  // ── Input handling ────────────────────────────────────────────
   function scrollToBottom() {
     terminalEl.scrollTop = terminalEl.scrollHeight;
   }
 
   function handleSubmit() {
     const value = inputEl.value;
-    const promptHtml = renderPrompt();
-    appendOutput(`${promptHtml}${escapeHtml(value)}`);
-
-    if (value.trim()) {
-      history.push(value);
-    }
+    freezePrompt(false);
+    appendOutput(`${renderEchoPrompt()}${escapeHtml(value)}`);
+    if (value.trim()) history.push(value);
     historyIndex = history.length;
-
     inputEl.value = "";
     processCommand(value);
     scrollToBottom();
   }
 
-  const commands = ["help", "ls", "cd", "cat", "open", "pwd", "clear", "whoami", "neofetch", "fastfetch"];
+  const commands = ["help", "ls", "cd", "cat", "open", "neofetch", "fastfetch"];
 
   let tabMatches: string[] = [];
   let tabIndex = -1;
-  let tabPrefix = "";
 
   function tabComplete() {
     const value = inputEl.value;
@@ -437,9 +650,8 @@ const dynamicFs = JSON.stringify({ dirs, rootFiles });
 
     if (completions.length === 1) {
       const match = completions[0];
-      const isDir = match.endsWith("/");
       parts[parts.length - 1] = match;
-      inputEl.value = parts.join(" ") + (isDir ? "" : " ");
+      inputEl.value = parts.join(" ") + (match.endsWith("/") ? "" : " ");
     } else if (completions.length > 1) {
       tabMatches = completions.map((c) => {
         const before = parts.slice(0, -1).join(" ");
@@ -455,117 +667,26 @@ const dynamicFs = JSON.stringify({ dirs, rootFiles });
     tabIndex = -1;
   }
 
-  let reverseSearchActive = false;
-  let reverseSearchQuery = "";
-  let reverseSearchIndex = -1;
-
-  function updateReverseSearchPrompt() {
-    const match = reverseSearchIndex >= 0 ? history[reverseSearchIndex] : "";
-    promptEl.innerHTML = `(reverse-i-search)\`${escapeHtml(reverseSearchQuery)}': `;
-    inputEl.value = match;
-  }
-
-  function exitReverseSearch(keepValue: boolean) {
-    reverseSearchActive = false;
-    const val = keepValue && reverseSearchIndex >= 0 ? history[reverseSearchIndex] : "";
-    reverseSearchQuery = "";
-    reverseSearchIndex = -1;
-    updatePrompt();
-    inputEl.value = val;
-  }
-
-  function searchHistory(query: string, startFrom: number): number {
-    for (let i = startFrom; i >= 0; i--) {
-      if (history[i].includes(query)) return i;
-    }
-    return -1;
-  }
-
   inputEl.addEventListener("keydown", (e: KeyboardEvent) => {
-    if (reverseSearchActive) {
-      if (e.key === "Escape") {
-        e.preventDefault();
-        exitReverseSearch(false);
-        return;
-      }
-      if (e.key === "Enter") {
-        e.preventDefault();
-        const val = reverseSearchIndex >= 0 ? history[reverseSearchIndex] : "";
-        exitReverseSearch(false);
-        inputEl.value = val;
-        handleSubmit();
-        return;
-      }
-      if (e.ctrlKey && e.key === "r") {
-        e.preventDefault();
-        const next = reverseSearchIndex > 0
-          ? searchHistory(reverseSearchQuery, reverseSearchIndex - 1)
-          : -1;
-        if (next >= 0) reverseSearchIndex = next;
-        updateReverseSearchPrompt();
-        return;
-      }
-      if (e.ctrlKey && e.key === "c") {
-        e.preventDefault();
-        exitReverseSearch(false);
-        return;
-      }
-      if (e.key === "Backspace") {
-        e.preventDefault();
-        reverseSearchQuery = reverseSearchQuery.slice(0, -1);
-        reverseSearchIndex = searchHistory(reverseSearchQuery, history.length - 1);
-        updateReverseSearchPrompt();
-        return;
-      }
-      if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
-        e.preventDefault();
-        reverseSearchQuery += e.key;
-        reverseSearchIndex = searchHistory(reverseSearchQuery, history.length - 1);
-        updateReverseSearchPrompt();
-        return;
-      }
-      exitReverseSearch(true);
-      return;
-    }
-
-    if (e.key === "Tab") {
-      e.preventDefault();
-      tabComplete();
-      return;
-    }
+    if (e.key === "Tab") { e.preventDefault(); tabComplete(); return; }
     resetTabState();
+
     if (e.key === "Enter") {
       e.preventDefault();
       handleSubmit();
     } else if (e.key === "ArrowUp") {
       e.preventDefault();
-      if (historyIndex > 0) {
-        historyIndex--;
-        inputEl.value = history[historyIndex];
-      }
+      if (historyIndex > 0) { historyIndex--; inputEl.value = history[historyIndex]; }
     } else if (e.key === "ArrowDown") {
       e.preventDefault();
-      if (historyIndex < history.length - 1) {
-        historyIndex++;
-        inputEl.value = history[historyIndex];
-      } else {
-        historyIndex = history.length;
-        inputEl.value = "";
-      }
+      if (historyIndex < history.length - 1) { historyIndex++; inputEl.value = history[historyIndex]; }
+      else { historyIndex = history.length; inputEl.value = ""; }
     } else if (e.ctrlKey && e.key === "l") {
-      e.preventDefault();
-      outputEl.innerHTML = "";
-    } else if (e.ctrlKey && e.key === "r") {
-      e.preventDefault();
-      reverseSearchActive = true;
-      reverseSearchQuery = "";
-      reverseSearchIndex = -1;
-      updateReverseSearchPrompt();
+      e.preventDefault(); outputEl.innerHTML = "";
     } else if (e.ctrlKey && e.key === "c") {
       e.preventDefault();
-      appendOutput(`${renderPrompt()}${escapeHtml(inputEl.value)}^C`);
-      inputEl.value = "";
-      scrollToBottom();
+      freezePrompt(true);
+      inputEl.value = ""; scrollToBottom();
     } else if (e.ctrlKey && e.key === "u") {
       e.preventDefault();
       const pos = inputEl.selectionStart ?? 0;
@@ -573,28 +694,21 @@ const dynamicFs = JSON.stringify({ dirs, rootFiles });
       inputEl.selectionStart = inputEl.selectionEnd = 0;
     } else if (e.ctrlKey && e.key === "k") {
       e.preventDefault();
-      const pos = inputEl.selectionStart ?? inputEl.value.length;
-      inputEl.value = inputEl.value.slice(0, pos);
+      inputEl.value = inputEl.value.slice(0, inputEl.selectionStart ?? inputEl.value.length);
     } else if (e.ctrlKey && e.key === "w") {
       e.preventDefault();
       const pos = inputEl.selectionStart ?? inputEl.value.length;
-      const before = inputEl.value.slice(0, pos);
-      const after = inputEl.value.slice(pos);
-      const trimmed = before.replace(/\S+\s*$/, "");
-      inputEl.value = trimmed + after;
-      inputEl.selectionStart = inputEl.selectionEnd = trimmed.length;
+      const before = inputEl.value.slice(0, pos).replace(/\S+\s*$/, "");
+      inputEl.value = before + inputEl.value.slice(pos);
+      inputEl.selectionStart = inputEl.selectionEnd = before.length;
     } else if (e.ctrlKey && e.key === "a") {
-      e.preventDefault();
-      inputEl.selectionStart = inputEl.selectionEnd = 0;
+      e.preventDefault(); inputEl.selectionStart = inputEl.selectionEnd = 0;
     } else if (e.ctrlKey && e.key === "e") {
-      e.preventDefault();
-      inputEl.selectionStart = inputEl.selectionEnd = inputEl.value.length;
+      e.preventDefault(); inputEl.selectionStart = inputEl.selectionEnd = inputEl.value.length;
     }
   });
 
-  terminalEl.addEventListener("click", () => {
-    inputEl.focus();
-  });
+  terminalEl.addEventListener("click", () => inputEl.focus());
 
   updatePrompt();
   appendOutput(neofetchOutput());
