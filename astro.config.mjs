@@ -14,7 +14,7 @@ export default defineConfig({
     starlight({
       title: 'Kevin Jin',
       social: [
-        { icon: 'github', label: 'GitHub', href: 'https://github.com/kevinjin420' },
+        { icon: 'github', label: 'GitHub', href: 'https://github.com/kevinjin0420' },
         { icon: 'linkedin', label: 'LinkedIn', href: 'https://www.linkedin.com/in/kevinjin0420/' },
         { icon: 'email', label: 'Email', href: 'mailto:kevinjin0420@gmail.com' },
       ],
