@@ -285,7 +285,7 @@ const dynamicFs = JSON.stringify({ dirs, rootFiles });
   function renderPromptLine1(): string {
     const dirLabel = cwd === "~" ? " ~" : escapeHtml(cwd);
     return (
-      `<span class="seg seg-os">  </span>` +
+      `<span class="seg seg-os"> kevinjin.dev </span>` +
       `<span class="seg-arrow-os-dir"></span>` +
       `<span class="seg seg-dir"> ${dirLabel} </span>` +
       `<span class="seg-arrow-dir-end"></span>`
@@ -481,7 +481,7 @@ const dynamicFs = JSON.stringify({ dirs, rootFiles });
           const resolved = resolvePath(target);
           const node = getNode(resolved);
           if (typeof node === "string") {
-            const urlMatch = node.match(/open ((?:\/|https?:\/\/)\S+)/);
+            const urlMatch = node.match(/open ((?:\/|https?:\/\/)\S*)/);
             if (urlMatch) {
               const url = urlMatch[1];
               if (url.startsWith("http")) window.open(url, "_blank");
@@ -489,6 +489,8 @@ const dynamicFs = JSON.stringify({ dirs, rootFiles });
             } else {
               appendOutput(`open: ${escapeHtml(target)}: no link found in file`);
             }
+          } else if (node && typeof node === "object") {
+            window.location.href = resolved.length ? `/${resolved.join("/")}/` : "/";
           } else {
             appendOutput(`open: ${escapeHtml(target)}: unknown target`);
           }
