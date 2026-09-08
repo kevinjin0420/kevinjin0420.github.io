@@ -1,0 +1,639 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { getCollection } from "astro:content";
+
+const projects = await getCollection("projects");
+
+const dirs: Record<string, Record<string, string>> = { projects: {} };
+const rootFiles: Record<string, string> = {
+  "about.md": [
+    "Kevin Jin",
+    "---",
+    "Computer Engineering at the University of Michigan.",
+    "I build robots, fly drones, and write systems software.",
+    "Teleoperations Lead, Michigan Mars Rover. Previously backend intern at TikTok.",
+    "",
+    "  open /",
+  ].join("\n"),
+};
+
+for (const project of projects) {
+  const { title, description, source, live } = project.data;
+  const target = live ?? source ?? "/projects/";
+  const lines = [title, "---"];
+  if (description) lines.push(description);
+  lines.push("", `  open ${target}`);
+  dirs.projects[`${project.id}.md`] = lines.join("\n");
+}
+
+const dynamicFs = JSON.stringify({ dirs, rootFiles });
+---
+
+<BaseLayout title="Kevin Jin" bare>
+  <script type="application/json" id="fs-data" set:html={dynamicFs} />
+
+  <div class="desktop">
+    <div class="kde-window" id="kde-window">
+      <div class="kde-titlebar" id="kde-titlebar">
+        <span class="kde-icon">▣</span>
+        <span class="kde-title" id="window-title">kevin@kevinjin.dev: ~</span>
+        <div class="kde-controls">
+          <button class="kde-btn kde-min" id="btn-min" title="Minimize">─</button>
+          <button class="kde-btn kde-max" id="btn-max" title="Maximize">□</button>
+          <button class="kde-btn kde-close" id="btn-close" title="Close">✕</button>
+        </div>
+      </div>
+      <div id="terminal" tabindex="0">
+        <div id="output"></div>
+        <div id="input-area">
+          <div id="prompt-line1"></div>
+          <div id="input-line">
+            <span id="prompt-line2"></span>
+            <input id="input" type="text" spellcheck="false" autocomplete="off" autocapitalize="off" />
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</BaseLayout>
+
+<style is:global>
+  html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+  }
+
+  .desktop {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    box-sizing: border-box;
+    background-color: #0a0a0a;
+  }
+
+  .kde-window {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    width: min(96vw, 1040px);
+    height: min(88vh, 760px);
+    border: 1px solid #262626;
+    overflow: hidden;
+  }
+
+  .kde-window.maximized {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    border: none;
+  }
+
+  .kde-titlebar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 10px;
+    height: 32px;
+    flex-shrink: 0;
+    background: #171717;
+    border-bottom: 1px solid #262626;
+    user-select: none;
+    cursor: default;
+  }
+
+  .kde-icon {
+    font-size: 13px;
+    color: #737373;
+    flex-shrink: 0;
+    line-height: 1;
+  }
+
+  .kde-title {
+    flex: 1;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: #737373;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .kde-controls {
+    display: flex;
+    gap: 2px;
+    flex-shrink: 0;
+  }
+
+  .kde-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 20px;
+    background: none;
+    border: none;
+    color: #737373;
+    font-size: 13px;
+    font-family: 'JetBrains Mono', monospace;
+    cursor: pointer;
+    line-height: 1;
+    padding: 0;
+    transition: background 0.12s, color 0.12s;
+  }
+
+  .kde-btn:hover {
+    background: #262626;
+    color: #f5f5f5;
+  }
+
+  .kde-close:hover {
+    background: #DA4453;
+    color: #f5f5f5;
+  }
+
+  #terminal {
+    flex: 1;
+    min-height: 0;
+    background: #0a0a0a;
+    color: #f5f5f5;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    line-height: 1.5;
+    padding: 14px 16px;
+    overflow-y: auto;
+    cursor: text;
+  }
+
+  #output div {
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  .frozen-prompt-line1 {
+    line-height: 1.4;
+    margin-top: 4px;
+  }
+
+  #prompt-line1 {
+    line-height: 1.4;
+    margin-top: 4px;
+    white-space: pre-wrap;
+  }
+
+  .seg {
+    display: inline;
+    padding: 0 6px;
+  }
+  .seg-os   { background: #f5f5f5; color: #0a0a0a; }
+  .seg-dir  { background: #262626; color: #f5f5f5; }
+  .seg-arrow-os-dir  { background: #262626; color: #f5f5f5; padding: 0; }
+  .seg-arrow-dir-end { background: #0a0a0a; color: #262626; padding: 0; }
+
+  .echo-prompt { color: #4ade80; }
+
+  #input-line {
+    display: flex;
+    align-items: center;
+    margin-top: 2px;
+  }
+
+  #prompt-line2 {
+    color: #4ade80;
+    flex-shrink: 0;
+    white-space: pre;
+  }
+
+  #input {
+    flex: 1;
+    background: none;
+    border: none;
+    outline: none;
+    color: #f5f5f5;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    line-height: 1.5;
+    padding: 0;
+    margin: 0;
+    caret-color: #f5f5f5;
+    caret-shape: block;
+  }
+
+  .dir-entry { color: #4ade80; }
+  .accent    { color: #4ade80; }
+  .label     { color: #4ade80; }
+  .link      { color: #4ade80; text-decoration: underline; cursor: pointer; }
+
+  @media (max-width: 600px) {
+    .desktop {
+      padding: 0;
+      align-items: stretch;
+    }
+    .kde-window {
+      width: 100%;
+      height: 100dvh;
+      border: none;
+    }
+  }
+</style>
+
+<script>
+  const dynamicFs = JSON.parse(document.getElementById("fs-data")!.textContent!);
+
+  const filesystem: Record<string, any> = {
+    ...dynamicFs.dirs,
+    ...dynamicFs.rootFiles,
+  };
+
+  let cwd = "~";
+  const history: string[] = [];
+  let historyIndex = -1;
+
+  const outputEl      = document.getElementById("output")!;
+  const inputEl       = document.getElementById("input") as HTMLInputElement;
+  const promptLine1El = document.getElementById("prompt-line1")!;
+  const promptLine2El = document.getElementById("prompt-line2")!;
+  const terminalEl    = document.getElementById("terminal")!;
+  const windowEl    = document.getElementById("kde-window")!;
+  const titleEl     = document.getElementById("window-title")!;
+  const btnMax      = document.getElementById("btn-max")!;
+  const btnClose    = document.getElementById("btn-close")!;
+
+  btnMax.addEventListener("click", () => {
+    windowEl.classList.toggle("maximized");
+    btnMax.textContent = windowEl.classList.contains("maximized") ? "❐" : "□";
+    inputEl.focus();
+  });
+
+  btnClose.addEventListener("click", () => {
+    window.location.href = "/";
+  });
+
+  document.getElementById("kde-titlebar")!.addEventListener("dblclick", () => {
+    btnMax.click();
+  });
+
+  function updateWindowTitle() {
+    titleEl.textContent = `kevin@kevinjin.dev: ${cwd}`;
+  }
+
+  function renderPromptLine1(): string {
+    const dirLabel = cwd === "~" ? " ~" : escapeHtml(cwd);
+    return (
+      `<span class="seg seg-os">  </span>` +
+      `<span class="seg-arrow-os-dir"></span>` +
+      `<span class="seg seg-dir"> ${dirLabel} </span>` +
+      `<span class="seg-arrow-dir-end"></span>`
+    );
+  }
+
+  function renderEchoPrompt(): string {
+    return `<span class="echo-prompt">❯</span> `;
+  }
+
+  function freezePrompt(_interrupted: boolean) {
+    const div = document.createElement("div");
+    div.className = "frozen-prompt-line1";
+    div.innerHTML = renderPromptLine1();
+    outputEl.appendChild(div);
+  }
+
+  function updatePrompt() {
+    promptLine1El.innerHTML = renderPromptLine1();
+    promptLine2El.textContent = "❯ ";
+    updateWindowTitle();
+  }
+
+  function resolvePath(path: string): string[] {
+    let parts: string[];
+    if (path === "~" || path === "") return [];
+    if (path.startsWith("~/")) {
+      parts = path.slice(2).split("/").filter(Boolean);
+    } else if (path.startsWith("/")) {
+      parts = path.slice(1).split("/").filter(Boolean);
+    } else {
+      const cwdParts = cwd === "~" ? [] : cwd.slice(2).split("/").filter(Boolean);
+      parts = [...cwdParts, ...path.split("/").filter(Boolean)];
+    }
+    const resolved: string[] = [];
+    for (const p of parts) {
+      if (p === "..") resolved.pop();
+      else if (p !== ".") resolved.push(p);
+    }
+    return resolved;
+  }
+
+  function getNode(parts: string[]): any {
+    let node: any = filesystem;
+    for (const p of parts) {
+      if (node == null || typeof node === "string") return undefined;
+      node = node[p];
+    }
+    return node;
+  }
+
+  function pathString(parts: string[]): string {
+    return parts.length === 0 ? "~" : "~/" + parts.join("/");
+  }
+
+  function appendOutput(html: string) {
+    const div = document.createElement("div");
+    div.innerHTML = html;
+    outputEl.appendChild(div);
+  }
+
+  function escapeHtml(s: string): string {
+    return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  }
+
+  function neofetchOutput(): string {
+    const art = [
+      " _  __          _             _ _       ",
+      "| |/ /_____   _(_)_ __       | (_)_ __  ",
+      "| ' // _ \\ \\ / / | '_ \\   _  | | | '_ \\ ",
+      "| . \\  __/\\ V /| | | | | | |_| | | | | |",
+      "|_|\\_\\___| \\_/ |_|_| |_|  \\___/|_|_| |_|",
+    ];
+
+    const info = [
+      ["visitor@kevinjin.dev", ""],
+      ["------------------", ""],
+      ["Major", "Computer Engineering"],
+      ["University", "University of Michigan"],
+      ["Email", "kevinjin0420 <at> gmail <dot> com"],
+    ];
+
+    const lines: string[] = [];
+    const artWidth = 44;
+
+    for (let i = 0; i < Math.max(art.length, info.length); i++) {
+      const artLine = (i < art.length ? art[i] : "").padEnd(artWidth);
+      let infoStr = "";
+      if (i < info.length) {
+        const [label, value] = info[i];
+        infoStr = value === ""
+          ? `<span class="accent">${escapeHtml(label)}</span>`
+          : `<span class="label">${escapeHtml(label)}</span>: ${escapeHtml(value)}`;
+      }
+      lines.push(`<span class="accent">${escapeHtml(artLine)}</span>${infoStr}`);
+    }
+
+    lines.push("");
+    lines.push("Type 'help' for available commands.");
+    return lines.join("\n");
+  }
+
+  function processCommand(input: string) {
+    const trimmed = input.trim();
+    if (!trimmed) return;
+
+    const parts = trimmed.split(/\s+/);
+    const cmd = parts[0];
+    const args = parts.slice(1);
+
+    switch (cmd) {
+      case "help": {
+        appendOutput([
+          "Available commands:",
+          "",
+          "  help           Show this help message",
+          "  ls [dir]       List directory contents",
+          "  cd &lt;dir&gt;       Change directory",
+          "  cat &lt;file&gt;     Print file contents",
+          "  open &lt;target&gt;  Navigate to a URL or page",
+          "  neofetch       Display system info",
+        ].join("\n"));
+        break;
+      }
+
+      case "ls": {
+        const target = args[0] || "";
+        const resolved = target ? resolvePath(target) : resolvePath(cwd);
+        const node = getNode(resolved);
+        if (node == null || typeof node === "string") {
+          appendOutput(`ls: cannot access '${escapeHtml(args[0] || "")}': No such directory`);
+          break;
+        }
+        const entries = Object.keys(node).sort();
+        const formatted = entries.map((e) => {
+          const isDir = typeof node[e] === "object";
+          return isDir
+            ? `<span class="dir-entry">${escapeHtml(e)}/</span>`
+            : escapeHtml(e);
+        });
+        appendOutput(formatted.join("  "));
+        break;
+      }
+
+      case "cd": {
+        if (args.length === 0) {
+          cwd = "~";
+          updatePrompt();
+          break;
+        }
+        const target = args[0];
+        const resolved = resolvePath(target);
+        const node = getNode(resolved);
+        if (node == null || typeof node === "string") {
+          appendOutput(`cd: no such directory: ${escapeHtml(target)}`);
+          break;
+        }
+        cwd = pathString(resolved);
+        updatePrompt();
+        break;
+      }
+
+      case "cat": {
+        if (args.length === 0) {
+          appendOutput("cat: missing operand");
+          break;
+        }
+        const resolved = resolvePath(args[0]);
+        const node = getNode(resolved);
+        if (node == null) {
+          appendOutput(`cat: ${escapeHtml(args[0])}: No such file or directory`);
+        } else if (typeof node === "object") {
+          appendOutput(`cat: ${escapeHtml(args[0])}: Is a directory`);
+        } else {
+          appendOutput(escapeHtml(node));
+        }
+        break;
+      }
+
+      case "open": {
+        if (args.length === 0) {
+          appendOutput("open: missing operand");
+          break;
+        }
+        const target = args[0];
+        if (target === "resume.pdf") {
+          window.location.href = "https://resume.kevinjin.dev/resume.pdf";
+        } else if (target.startsWith("http://") || target.startsWith("https://")) {
+          window.open(target, "_blank");
+        } else if (target.startsWith("/")) {
+          window.location.href = target;
+        } else {
+          const resolved = resolvePath(target);
+          const node = getNode(resolved);
+          if (typeof node === "string") {
+            const urlMatch = node.match(/open ((?:\/|https?:\/\/)\S+)/);
+            if (urlMatch) {
+              const url = urlMatch[1];
+              if (url.startsWith("http")) window.open(url, "_blank");
+              else window.location.href = url;
+            } else {
+              appendOutput(`open: ${escapeHtml(target)}: no link found in file`);
+            }
+          } else {
+            appendOutput(`open: ${escapeHtml(target)}: unknown target`);
+          }
+        }
+        break;
+      }
+
+      case "neofetch":
+      case "fastfetch": {
+        appendOutput(neofetchOutput());
+        break;
+      }
+
+      default: {
+        appendOutput(`${escapeHtml(cmd)}: command not found`);
+        break;
+      }
+    }
+  }
+
+  function scrollToBottom() {
+    terminalEl.scrollTop = terminalEl.scrollHeight;
+  }
+
+  function handleSubmit() {
+    const value = inputEl.value;
+    freezePrompt(false);
+    appendOutput(`${renderEchoPrompt()}${escapeHtml(value)}`);
+    if (value.trim()) history.push(value);
+    historyIndex = history.length;
+    inputEl.value = "";
+    processCommand(value);
+    scrollToBottom();
+  }
+
+  const commands = ["help", "ls", "cd", "cat", "open", "neofetch", "fastfetch"];
+
+  let tabMatches: string[] = [];
+  let tabIndex = -1;
+
+  function tabComplete() {
+    const value = inputEl.value;
+    const parts = value.split(/\s+/);
+
+    if (tabMatches.length > 0 && tabIndex >= 0) {
+      tabIndex = (tabIndex + 1) % tabMatches.length;
+      inputEl.value = tabMatches[tabIndex];
+      return;
+    }
+
+    if (parts.length <= 1) {
+      const prefix = parts[0];
+      const matches = commands.filter((c) => c.startsWith(prefix)).sort();
+      if (matches.length === 1) {
+        inputEl.value = matches[0] + " ";
+      } else if (matches.length > 1) {
+        tabMatches = matches.map((m) => m + " ");
+        tabIndex = 0;
+        inputEl.value = tabMatches[0];
+      }
+      return;
+    }
+
+    const cmd = parts[0];
+    if (!["cat", "cd", "ls", "open"].includes(cmd)) return;
+
+    const arg = parts[parts.length - 1];
+    const lastSlash = arg.lastIndexOf("/");
+    const dirPart = lastSlash >= 0 ? arg.slice(0, lastSlash + 1) : "";
+    const prefix = lastSlash >= 0 ? arg.slice(lastSlash + 1) : arg;
+
+    const resolved = resolvePath(dirPart || cwd);
+    const node = getNode(resolved);
+    if (node == null || typeof node === "string") return;
+
+    const entries = Object.keys(node).filter((e) => e.startsWith(prefix)).sort();
+    const completions = entries.map((e) => {
+      const isDir = typeof node[e] === "object";
+      return dirPart + e + (isDir ? "/" : "");
+    });
+
+    if (completions.length === 1) {
+      const match = completions[0];
+      parts[parts.length - 1] = match;
+      inputEl.value = parts.join(" ") + (match.endsWith("/") ? "" : " ");
+    } else if (completions.length > 1) {
+      tabMatches = completions.map((c) => {
+        const before = parts.slice(0, -1).join(" ");
+        return before + (before ? " " : "") + c;
+      });
+      tabIndex = 0;
+      inputEl.value = tabMatches[0];
+    }
+  }
+
+  function resetTabState() {
+    tabMatches = [];
+    tabIndex = -1;
+  }
+
+  inputEl.addEventListener("keydown", (e: KeyboardEvent) => {
+    if (e.key === "Tab") { e.preventDefault(); tabComplete(); return; }
+    resetTabState();
+
+    if (e.key === "Enter") {
+      e.preventDefault();
+      handleSubmit();
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      if (historyIndex > 0) { historyIndex--; inputEl.value = history[historyIndex]; }
+    } else if (e.key === "ArrowDown") {
+      e.preventDefault();
+      if (historyIndex < history.length - 1) { historyIndex++; inputEl.value = history[historyIndex]; }
+      else { historyIndex = history.length; inputEl.value = ""; }
+    } else if (e.ctrlKey && e.key === "l") {
+      e.preventDefault(); outputEl.innerHTML = "";
+    } else if (e.ctrlKey && e.key === "c") {
+      e.preventDefault();
+      freezePrompt(true);
+      inputEl.value = ""; scrollToBottom();
+    } else if (e.ctrlKey && e.key === "u") {
+      e.preventDefault();
+      const pos = inputEl.selectionStart ?? 0;
+      inputEl.value = inputEl.value.slice(pos);
+      inputEl.selectionStart = inputEl.selectionEnd = 0;
+    } else if (e.ctrlKey && e.key === "k") {
+      e.preventDefault();
+      inputEl.value = inputEl.value.slice(0, inputEl.selectionStart ?? inputEl.value.length);
+    } else if (e.ctrlKey && e.key === "w") {
+      e.preventDefault();
+      const pos = inputEl.selectionStart ?? inputEl.value.length;
+      const before = inputEl.value.slice(0, pos).replace(/\S+\s*$/, "");
+      inputEl.value = before + inputEl.value.slice(pos);
+      inputEl.selectionStart = inputEl.selectionEnd = before.length;
+    } else if (e.ctrlKey && e.key === "a") {
+      e.preventDefault(); inputEl.selectionStart = inputEl.selectionEnd = 0;
+    } else if (e.ctrlKey && e.key === "e") {
+      e.preventDefault(); inputEl.selectionStart = inputEl.selectionEnd = inputEl.value.length;
+    }
+  });
+
+  terminalEl.addEventListener("click", () => inputEl.focus());
+
+  updatePrompt();
+  appendOutput(neofetchOutput());
+  scrollToBottom();
+  inputEl.focus();
+</script>

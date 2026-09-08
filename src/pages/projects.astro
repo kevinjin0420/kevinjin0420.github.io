@@ -1,0 +1,32 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
+
+const projects = (await getCollection('projects')).sort(
+  (a, b) => a.data.order - b.data.order || a.data.title.localeCompare(b.data.title),
+);
+---
+<BaseLayout title="Projects - Kevin Jin">
+  <a href="/" class="font-mono text-xs text-[color:var(--color-fg-muted)] hover:text-[color:var(--color-fg)]">&larr; index</a>
+  <p class="micro-heading mt-4">Projects</p>
+
+  <ul class="mt-2 border border-[color:var(--color-border)] divide-y divide-[color:var(--color-border)]">
+    {projects.map((project) => (
+      <li class="px-3 py-3">
+        <div class="text-sm font-medium">{project.data.title}</div>
+        <div class="mt-0.5 text-sm text-[color:var(--color-fg-secondary)]">{project.data.description}</div>
+        {project.data.tags.length > 0 && (
+          <div class="mt-1 font-mono text-xs text-[color:var(--color-fg-muted)]">{project.data.tags.join(' · ')}</div>
+        )}
+        <div class="mt-1.5 flex gap-3 font-mono text-xs">
+          {project.data.source && (
+            <a class="text-[color:var(--color-accent)]" href={project.data.source} target="_blank" rel="noopener noreferrer">Source</a>
+          )}
+          {project.data.live && (
+            <a class="text-[color:var(--color-accent)]" href={project.data.live} target="_blank" rel="noopener noreferrer">Live</a>
+          )}
+        </div>
+      </li>
+    ))}
+  </ul>
+</BaseLayout>

@@ -1,9 +1,10 @@
 ---
 title: Michigan Mars Rover Team
-description: Teleoperations Lead -- real-time rover control system.
+description: Teleoperations Lead, real-time rover control system.
+tags: [Vue.js, FastAPI, Python, C++, ROS2, MessagePack, THREE.js, WebSockets]
+source: https://github.com/umrover/mrover-ros2/
+order: 1
 ---
-
-![MRover GUI screenshot](/mrover-gui.png)
 
 ## Overview
 
@@ -18,5 +19,3 @@ Teleoperations Lead for the Michigan Mars Rover Student Project Team. Responsibl
 ## Stack
 
 Vue.js, FastAPI, Python, C++, ROS2, MessagePack, THREE.js, WebSockets
-
-[Source](https://github.com/umrover/mrover-ros2/)

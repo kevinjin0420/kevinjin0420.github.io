@@ -1,6 +1,10 @@
 ---
 title: MRover Team Website
 description: Official website for the Michigan Mars Rover Team with interactive 3D rover visualization.
+tags: [Astro, React, Three.js, React Three Fiber, GSAP, Lenis, TailwindCSS, TypeScript]
+source: https://github.com/umrover/mrover-website/
+live: https://mrover.org
+order: 4
 ---
 
 ## Overview
@@ -17,5 +21,3 @@ Built the official website for the University of Michigan Mars Rover Team. Featu
 ## Stack
 
 Astro, React, Three.js, React Three Fiber, GSAP, Lenis, TailwindCSS, TypeScript
-
-[Source](https://github.com/umrover/mrover-website/) | [Live](https://mrover.org)
