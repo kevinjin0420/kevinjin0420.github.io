@@ -1,11 +1,6 @@
 ---
 import BaseLayout from "@/layouts/BaseLayout.astro";
 
-const emailUser = "kevinjin0420";
-const emailDomain = "gmail.com";
-const emailDisplay = `${emailUser} <at> ${emailDomain.split(".").join(" <dot> ")}`;
-const emailReversed = [...`${emailUser}@${emailDomain}`].reverse().join("");
-
 const links = [
     {
         label: "GitHub",
@@ -17,7 +12,11 @@ const links = [
         href: "https://www.linkedin.com/in/kevinjin0420/",
         host: "linkedin.com/in/kevinjin0420",
     },
-    { label: "Email", mail: true },
+    {
+        label: "Email",
+        href: "mailto:kevinjin0420@gmail.com",
+        host: "kevinjin0420@gmail.com",
+    },
     {
         label: "Resume",
         href: "https://resume.kevinjin.dev/resume.pdf",
@@ -53,11 +52,8 @@ const links = [
             links.map((link) => (
                 <li>
                     <a
-                        href={link.mail ? "#" : link.href}
+                        href={link.href}
                         class="flex items-center justify-between px-3 py-2 text-sm hover:bg-[color:var(--color-hover)]"
-                        {...(link.mail
-                            ? { "data-addr": emailReversed, rel: "nofollow" }
-                            : {})}
                         {...(link.host
                             ? { target: "_blank", rel: "noopener noreferrer" }
                             : {})}
@@ -66,11 +62,6 @@ const links = [
                         {link.host && (
                             <span class="font-mono text-xs text-[color:var(--color-fg-muted)]">
                                 {link.host}
-                            </span>
-                        )}
-                        {link.mail && (
-                            <span class="font-mono text-xs text-[color:var(--color-fg-muted)]">
-                                {emailDisplay}
                             </span>
                         )}
                         {link.arrow && (
@@ -140,10 +131,4 @@ const links = [
         document.fonts?.ready.then(sync);
         window.addEventListener("resize", sync);
     }
-
-    document.querySelectorAll<HTMLAnchorElement>("a[data-addr]").forEach((anchor) => {
-        const addr = [...(anchor.dataset.addr ?? "")].reverse().join("");
-        anchor.setAttribute("href", `mailto:${addr}`);
-        anchor.removeAttribute("data-addr");
-    });
 </script>
